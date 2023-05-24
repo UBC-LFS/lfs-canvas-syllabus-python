@@ -14,24 +14,32 @@ load_dotenv()
 TOKEN = os.environ.get('CANVAS_API_TOKEN')
 BASEURL = os.environ.get('CANVAS_API_DOMAIN')
 
+# Gets the HTML code for the syllabus
 def getSyllabusHTML(courseSession, courseCode, courseID):
     # Makes a API call and passes the TOKEN
     response = requests.get(f'https://ubc.beta.instructure.com/api/v1/courses/{courseID}?include[]=syllabus_body', headers={'Authorization': 'Bearer {}'.format(TOKEN)})
     if (json.loads(response.text)["syllabus_body"]):
+        # Replaces beta link to prod so we have permission to get syllabus
         syllabusHTML = json.loads(response.text)["syllabus_body"].replace("ubc.beta.instructure.com", "ubc.instructure.com")
+
         path = Path(f"./output/syllabi/{courseSession}/{courseCode}/")
+
+        # If the course folder does not exist, create it
         if not path.exists():
             os.makedirs(f"./output/syllabi/{courseSession}/{courseCode}/")
+        # Creates the HTML file for the syllabus
         makePage = open(f"./output/syllabi/{courseSession}/{courseCode}/index.html", "w", encoding="utf-8")
         makePage.write(syllabusHTML)
         makePage.close()
+        # Make source folder (syllabus pdfs will be manually added here)
+        os.makedirs(f"./output/syllabi/{courseSession}/{courseCode}/source/")
 
 def getSyllabi():
-    year = inquirer.number(message="Year:", default=None).execute()
+    year = inquirer.number(message="What year are you interested in?", default=None).execute()
     allTerms = ['S1', 'SA', 'S2', 'S', 'S1-2', 'W1', 'WA', 'W2', 'WC', 'W', 'W1-2']
     term_choices = [
         Separator(),
-        Choice("All", name="All", enabled=False),
+        Choice("All", name="All", enabled=True),
         Choice("S1", name="S1", enabled=False),
         Choice("SA", name="SA", enabled=False),
         Choice("S2", name="S2", enabled=False),
@@ -45,8 +53,9 @@ def getSyllabi():
         Choice("W1-2", name="W1-2", enabled=False)
     ]
 
+    print("\nInstructions:\n↑/↓: Change option\n[space]: Toggle selection\n[enter]/[return]: Submit answer\n")
     terms = inquirer.checkbox(
-        message="Select terms:",
+        message="Select the term(s) you are interested in:",
         choices=term_choices,
         cycle=False,
         transformer=lambda result: "%s terms%s selected"
@@ -68,7 +77,7 @@ def getSyllabi():
     for term in terms:
         selectedSessions.append(str(year) + str(term))
 
-    print("Collecting syllabi...")
+    print("Please wait... Trying to get the information via Canvas API. This might take several minutes.\n\nFeel free to go on a walk or grab some coffee while waiting :)\n\n")
     for course in courses:
         courseSession = course.course_code.split(" ")[-1]
         if (courseSession in selectedSessions):
