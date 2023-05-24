@@ -85,7 +85,10 @@ def getSyllabi():
             if not path.exists():
                 os.makedirs(f"./output/syllabi/{courseSession}/")
             if not ("/" in course.course_code):
-                getSyllabusHTML(courseSession, course.course_code, course.id)
+                try:
+                    getSyllabusHTML(courseSession, course.course_code, course.id)
+                except:
+                    print("Failed to get syllabus. Course code: " + course.course_code)
     
     print("Done collecting syllabi!")
 
