@@ -34,6 +34,15 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
         sourcePath = f"./output/syllabi/{courseSession}/{courseCode}/source/"
         if not Path(sourcePath).exists():
             os.makedirs(sourcePath)
+    else:
+        with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "r") as noSyllabusPathFile:
+            noSyllabusDict = json.load(noSyllabusPathFile)
+            noSyllabusPathFile.close()
+            
+        with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "w") as noSyllabusPathFile:
+            noSyllabusDict[f"{courseSession}"].append(courseCode)
+            json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
+            noSyllabusPathFile.close()
 
 def getSyllabi():
     year = inquirer.number(message="What year are you interested in?", default=None).execute()
@@ -88,6 +97,17 @@ def getSyllabi():
             path = Path(f"./output/syllabi/{courseSession}/")
             if not path.exists():
                 os.makedirs(f"./output/syllabi/{courseSession}/")
+
+            noSyllabusPath = Path(f"./output/coursesWithNoSyllabus/{courseSession}.json")    
+            if not noSyllabusPath.exists():
+                with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "w+") as noSyllabusPathFile:
+                    noSyllabusDict = {
+                        f"{courseSession}": []
+                    }
+            
+                    json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
+                    noSyllabusPathFile.close()
+            
             if not ("/" in course.course_code):
                 try:
                     getSyllabusHTML(courseSession, course.course_code, course.id)
