@@ -4,7 +4,6 @@ from canvasapi import Canvas
 import requests
 import json
 from pathlib import Path
-from InquirerPy import prompt
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
@@ -32,7 +31,9 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
         makePage.write(syllabusHTML)
         makePage.close()
         # Make source folder (syllabus pdfs will be manually added here)
-        os.makedirs(f"./output/syllabi/{courseSession}/{courseCode}/source/")
+        sourcePath = f"./output/syllabi/{courseSession}/{courseCode}/source/"
+        if not Path(sourcePath).exists():
+            os.makedirs(sourcePath)
 
 def getSyllabi():
     year = inquirer.number(message="What year are you interested in?", default=None).execute()
@@ -64,9 +65,6 @@ def getSyllabi():
     
     accountNum = inquirer.number(message="What is your subaccount number? If you don't know, go to https://ubc.beta.instructure.com/accounts/ and click on your Faculty - in the URL, the number will show at the end. LFS is 15. ", default=None).execute()
 
-    if ("All" in terms):
-        terms = allTerms
-
     canvas = Canvas(BASEURL, TOKEN)
 
     account = canvas.get_account(accountNum)
@@ -74,10 +72,16 @@ def getSyllabi():
 
     selectedSessions = []
 
-    for term in terms:
-        selectedSessions.append(str(year) + str(term))
+    if ("All" in terms):
+        for term in range(len(allTerms)):
+            allTerms[term] = str(year) + str(allTerms[term])
+            selectedSessions = allTerms
+    else:
+        for term in terms:
+            selectedSessions.append(str(year) + str(term))
+    
 
-    print("Please wait... Trying to get the information via Canvas API. This might take several minutes.\n\nFeel free to go on a walk or grab some coffee while waiting :)\n\n")
+    print("Please wait... Trying to get the information via Canvas API. This might take several minutes. Please do not shut off your computer!\n\nFeel free to go on a walk or grab some coffee while waiting :)\n\n")
     for course in courses:
         courseSession = course.course_code.split(" ")[-1]
         if (courseSession in selectedSessions):
@@ -87,8 +91,9 @@ def getSyllabi():
             if not ("/" in course.course_code):
                 try:
                     getSyllabusHTML(courseSession, course.course_code, course.id)
-                except:
+                except Exception as errorMessage:
                     print("Failed to get syllabus. Course code: " + course.course_code)
+                    print("Error: " + str(errorMessage) + "\n")
     
     print("Done collecting syllabi!")
 
