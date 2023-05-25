@@ -32,6 +32,6 @@ python getSyllabi.py
 ```
 2. Input the year you are interested in (if you are interested in more than one year, you'll need to run the script more than one time).
 3. Select the terms you are interested in. You can select multiple terms by pressing space. If you want to select all the terms, leave the default selection of 'All'.
-4. Input the account number of your Faculty.For LFS, it's 15.
+4. Input the account number of your Faculty. For LFS, it's 15.
 5. Wait for the script to gather the syllabuses. Depending on how many terms you select and how many courses there are, this could take some time.
 6. The syllabuses are now downloaded in output/syllabi, inside folders that indicate what year/term the course was offered.
