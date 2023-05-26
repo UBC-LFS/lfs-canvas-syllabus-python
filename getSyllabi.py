@@ -7,6 +7,7 @@ from pathlib import Path
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
+import exrex
 
 load_dotenv()
 
@@ -38,13 +39,16 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
         with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "r") as noSyllabusPathFile:
             noSyllabusDict = json.load(noSyllabusPathFile)
             noSyllabusPathFile.close()
-            
+
         with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "w") as noSyllabusPathFile:
             noSyllabusDict[f"{courseSession}"].append(courseCode)
             json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
             noSyllabusPathFile.close()
 
 def getSyllabi():
+    # Generate a random session key to keep track of if a file was created during this session or during a previous session
+    sessionKey = exrex.getone('(\d){7}([A-Z]|(a-z)){6}([\d]|(A-Z)|(a-z)){7}')
+
     year = inquirer.number(message="What year are you interested in?", default=None).execute()
     allTerms = ['S1', 'SA', 'S2', 'S', 'S1-2', 'W1', 'WA', 'W2', 'WC', 'W', 'W1-2']
     term_choices = [
@@ -102,11 +106,27 @@ def getSyllabi():
             if not noSyllabusPath.exists():
                 with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "w+") as noSyllabusPathFile:
                     noSyllabusDict = {
-                        f"{courseSession}": []
+                        f"{courseSession}": [],
+                        "lastUpdatedSessionKey": sessionKey
                     }
             
                     json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
                     noSyllabusPathFile.close()
+
+            # If a file already exist, check if it was generated during this session or in a previous session
+            else:
+                with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "r") as noSyllabusPathFile:
+                    noSyllabusDict = json.load(noSyllabusPathFile)
+                    noSyllabusPathFile.close()
+
+                if (noSyllabusDict["lastUpdatedSessionKey"] != sessionKey):
+                    with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "w") as noSyllabusPathFile:
+                        noSyllabusDict = {
+                            f"{courseSession}": [],
+                            "lastUpdatedSessionKey": sessionKey
+                        }
+                        json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
+                        noSyllabusPathFile.close()
             
             if not ("/" in course.course_code):
                 try:
