@@ -137,4 +137,7 @@ def getSyllabi():
     
     print("Done collecting syllabi!")
 
-getSyllabi()
+if (TOKEN == None or BASEURL == None):
+    print("\nError: Missing .env variables!\n")
+else:
+    getSyllabi()
