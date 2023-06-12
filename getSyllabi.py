@@ -8,6 +8,7 @@ from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
 import exrex
+import re
 
 load_dotenv()
 
@@ -21,6 +22,15 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
     if (json.loads(response.text)["syllabus_body"]):
         # Replaces beta link to prod so we have permission to get syllabus
         syllabusHTML = json.loads(response.text)["syllabus_body"].replace("ubc.beta.instructure.com", "ubc.instructure.com")
+        # print("\n"+ syllabusHTML +"\n")
+        autoDownloadableFiles = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=[\S]*", syllabusHTML)
+        if (autoDownloadableFiles):
+            for autoDownloadableFile in autoDownloadableFiles:
+                autoDownloadableFile = autoDownloadableFile.replace("\"", "").replace("\'", "")
+                r = requests.get(autoDownloadableFile, allow_redirects=True)
+                filename = re.findall("filename=(.+)", r.headers['content-disposition'])[0].replace("\"", "")
+                syllabusHTML = syllabusHTML.replace(autoDownloadableFile, f"./source/{filename}")
+                open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(r.content)
 
         path = Path(f"./output/syllabi/{courseSession}/{courseCode}/")
 
@@ -31,7 +41,7 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
         makePage = open(f"./output/syllabi/{courseSession}/{courseCode}/index.html", "w", encoding="utf-8")
         makePage.write(syllabusHTML)
         makePage.close()
-        # Make source folder (syllabus pdfs will be manually added here)
+        # Make source folder if it doesn't exist yet
         sourcePath = f"./output/syllabi/{courseSession}/{courseCode}/source/"
         if not Path(sourcePath).exists():
             os.makedirs(sourcePath)
