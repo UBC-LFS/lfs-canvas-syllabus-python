@@ -1,17 +1,22 @@
+# note: this file is just to test requests made to Canvas. The code here does not affect getSyllabi.py
+# You are welcome to use this file to test out any code and API calls as retrieiving syllabuses can take a while
+
 import re
-import requests
+import requests, json
+import urllib.request
+syllabusHTML = "https://ubc.instructure.com/courses/73196/files/14765297/download?verifier=LYrtkjKfZVYB6Tp0B7Xw0rR60BxsMSXQOSjkX4qu&wrap=1"
+autoDownloadableSyllabus = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=\w*", syllabusHTML)
 
-# syllabusHTML = "https://ubc.instructure.com/courses/73196/files/14765297/download?verifier=LYrtkjKfZVYB6Tp0B7Xw0rR60BxsMSXQOSjkX4qu&wrap=1 JDJDJD JDJDJ"
-# # autoDownloadableSyllabus = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=\w*", syllabusHTML)
-
-# # test = "hi/222hii122"
-# # sss = re.findall(r"hi/[\d]+hii[\d]+", test)
+# test = "hi/222hii122"
+# sss = re.findall(r"hi/[\d]+hii[\d]+", test)
 # r = requests.get(syllabusHTML, allow_redirects=True)
+filename = urllib.request.urlopen(syllabusHTML)
+print(filename.headers.get_filename())
+print(filename.read())
 # filename = re.findall("filename=(.+)", r.headers['content-disposition'])[0].replace("\"", "")
-# open(f"./{filename}", 'wb').write(r.content)
-# # print(autoDownloadableSyllabus)
+open(f"./{filename.headers.get_filename()}", 'wb').write(filename.read())
+# print(autoDownloadableSyllabus)
 # # print(sss)
-
 
 # html = """
 # <p><a class="instructure_file_link instructure_scribd_file" title="APBI 496 Course Syllabus - UBC LFS - version Nov 2020.pdf" href="https://ubc.instructure.com/courses/73196/files/14765297/download?verifier=LYrtkjKfZVYB6Tp0B7Xw0rR60BxsMSXQOSjkX4qu&amp;wrap=1" data-api-endpoint="https://ubc.instructure.com/api/v1/courses/73196/files/14765297" data-api-returntype="File">APBI 496 Course Syllabus - UBC LFS - version Nov 2020.pdf</a></p>
@@ -22,6 +27,17 @@ import requests
 # html = html.replace("<p>", "<a>")
 # print(html)
 
-html="href='https://ubc.instructure.com/courses/73196/files/14765297/download?verifier=LYrtkjKfZVYB6Tp0B7Xw0rR60BxsMSXQOSjkX4qu&amp;wrap=1' data-api-endpoint='https://ubc.instructure.com/api/v1/courses/73196/files/14765297'"
-autoDownloadableSyllabus = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=[\S]*", html)
-print(autoDownloadableSyllabus)
+# html="href='https://ubc.instructure.com/courses/73196/files/14765297/download?verifier=LYrtkjKfZVYB6Tp0B7Xw0rR60BxsMSXQOSjkX4qu&amp;wrap=1' data-api-endpoint='https://ubc.instructure.com/api/v1/courses/73196/files/14765297'"
+# autoDownloadableSyllabus = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=[\S]*", html)
+# print(autoDownloadableSyllabus)
+
+# originalURL='href="https://ubc.instructure.com/courses/118002/files/26849394?verifier=1KNLMPvrul8cBTydRZI6m5FeVkASEcDhfzRRzNLP&wrap=1" target="_blank"'
+# redirectedSyllabus = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+\W?verifier=[\S]*", originalURL)
+# print(redirectedSyllabus)
+# print(redirectedSyllabus[0].replace("\"", "").replace("\'", ""))
+
+# canvaPage = requests.get(redirectedSyllabus[0]).text
+# # print(canvaPage)
+
+# downloadableSyllabus = re.findall(r"courses/[\d]+/files/[\d]+/download\W?download_frd=1&amp;verifier=[\w]*", canvaPage)
+# downloadURL = "https://ubc.instructure.com/" + downloadableSyllabus[0]

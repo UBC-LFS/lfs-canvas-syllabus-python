@@ -9,6 +9,7 @@ from InquirerPy.base.control import Choice
 from InquirerPy.separator import Separator
 import exrex
 import re
+import urllib.request
 
 load_dotenv()
 
@@ -20,6 +21,16 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
     # Makes a API call and passes the TOKEN
     response = requests.get(f'https://ubc.beta.instructure.com/api/v1/courses/{courseID}?include[]=syllabus_body', headers={'Authorization': 'Bearer {}'.format(TOKEN)})
     if (json.loads(response.text)["syllabus_body"]):
+        
+        path = Path(f"./output/syllabi/{courseSession}/{courseCode}/")
+        # If the course folder does not exist, create it
+        if not path.exists():
+            os.makedirs(f"./output/syllabi/{courseSession}/{courseCode}/")
+        # Make source folder if it doesn't exist yet
+        sourcePath = f"./output/syllabi/{courseSession}/{courseCode}/source/"
+        if not Path(sourcePath).exists():
+            os.makedirs(sourcePath)
+
         # Replaces beta link to prod so we have permission to get syllabus
         syllabusHTML = json.loads(response.text)["syllabus_body"].replace("ubc.beta.instructure.com", "ubc.instructure.com")
         # print("\n"+ syllabusHTML +"\n")
@@ -27,24 +38,33 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
         if (autoDownloadableFiles):
             for autoDownloadableFile in autoDownloadableFiles:
                 autoDownloadableFile = autoDownloadableFile.replace("\"", "").replace("\'", "")
-                r = requests.get(autoDownloadableFile, allow_redirects=True)
-                filename = re.findall("filename=(.+)", r.headers['content-disposition'])[0].replace("\"", "")
+                file = urllib.request.urlopen(autoDownloadableFile)
+                filename = file.headers.get_filename()
                 syllabusHTML = syllabusHTML.replace(autoDownloadableFile, f"./source/{filename}")
-                open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(r.content)
+                open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(file.read())
+        
+        redirectedSyllabi = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+\W?verifier=[\S]*", syllabusHTML)
+        if (redirectedSyllabi):
+            for redirectedSyllabus in redirectedSyllabi:
+                canvaPage = requests.get(redirectedSyllabus).text.replace("\"", "").replace("\'", "")
+                downloadableSyllabus = re.findall(r"courses/[\d]+/files/[\d]+/download\W?download_frd=1&amp;verifier=[\w]*", canvaPage)
+                # Using index 0 because there should only be 1 downloadable syllabus
+                downloadURL = "https://ubc.instructure.com/" + downloadableSyllabus[0].replace("\"", "").replace("\'", "")
+                file = urllib.request.urlopen(downloadURL)
+                filename = file.headers.get_filename()
+                try:
+                    open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(file.read())
+                # Unsupported file name
+                except Exception as e: 
+                    filename = filename.replace("?", "-")
+                    open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(file.read())
+                syllabusHTML = syllabusHTML.replace(redirectedSyllabus.replace("\"", "").replace("\'", ""), f"./source/{filename}")
 
-        path = Path(f"./output/syllabi/{courseSession}/{courseCode}/")
-
-        # If the course folder does not exist, create it
-        if not path.exists():
-            os.makedirs(f"./output/syllabi/{courseSession}/{courseCode}/")
         # Creates the HTML file for the syllabus
         makePage = open(f"./output/syllabi/{courseSession}/{courseCode}/index.html", "w", encoding="utf-8")
         makePage.write(syllabusHTML)
         makePage.close()
-        # Make source folder if it doesn't exist yet
-        sourcePath = f"./output/syllabi/{courseSession}/{courseCode}/source/"
-        if not Path(sourcePath).exists():
-            os.makedirs(sourcePath)
+
     else:
         with open(f"./output/coursesWithNoSyllabus/{courseSession}.json", "r") as noSyllabusPathFile:
             noSyllabusDict = json.load(noSyllabusPathFile)
@@ -54,6 +74,7 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
             noSyllabusDict[f"{courseSession}"].append(courseCode)
             json.dump(noSyllabusDict, noSyllabusPathFile, indent = 4)
             noSyllabusPathFile.close()
+    # print(f"Got {courseCode}")
 
 def getSyllabi():
     # Generate a random session key to keep track of if a file was created during this session or during a previous session
