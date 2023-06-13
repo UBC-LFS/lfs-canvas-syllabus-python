@@ -33,7 +33,7 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
 
         # Replaces beta link to prod so we have permission to get syllabus
         syllabusHTML = json.loads(response.text)["syllabus_body"].replace("ubc.beta.instructure.com", "ubc.instructure.com")
-        # print("\n"+ syllabusHTML +"\n")
+        # Looks for URLs where the syllabus is downloaded automatically
         autoDownloadableFiles = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+/download\W?verifier=[\S]*", syllabusHTML)
         if (autoDownloadableFiles):
             for autoDownloadableFile in autoDownloadableFiles:
@@ -42,11 +42,12 @@ def getSyllabusHTML(courseSession, courseCode, courseID):
                 filename = file.headers.get_filename()
                 syllabusHTML = syllabusHTML.replace(autoDownloadableFile, f"./source/{filename}")
                 open(f"./output/syllabi/{courseSession}/{courseCode}/source/{filename}", 'wb').write(file.read())
-        
+        # Looks for URLs where the user is redirected to Canvas
         redirectedSyllabi = re.findall(r"https://ubc.instructure.com/courses/[\d]+/files/[\d]+\W?verifier=[\S]*", syllabusHTML)
         if (redirectedSyllabi):
             for redirectedSyllabus in redirectedSyllabi:
                 canvaPage = requests.get(redirectedSyllabus).text.replace("\"", "").replace("\'", "")
+                # Looks for a syllabus download link from Canvas
                 downloadableSyllabus = re.findall(r"courses/[\d]+/files/[\d]+/download\W?download_frd=1&amp;verifier=[\w]*", canvaPage)
                 # Using index 0 because there should only be 1 downloadable syllabus
                 downloadURL = "https://ubc.instructure.com/" + downloadableSyllabus[0].replace("\"", "").replace("\'", "")

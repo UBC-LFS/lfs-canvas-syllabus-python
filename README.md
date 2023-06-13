@@ -1,5 +1,5 @@
 # LFS-Canva-Syllabus (with Python)
-This application extracts syllabi from Canvas and saves it as an index.html file
+This application extracts syllabi from Canvas, downloads them, and adds it to an index.html file
 
 ## Prerequisites
 1. **Install [Python 3.7 or greater](https://www.python.org/downloads/)**.
