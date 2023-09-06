@@ -12,7 +12,19 @@ This application extracts syllabi from Canvas, downloads them, and adds it to an
 ```
 pip install virtualenv
 virtualenv venv
+```
+
+On Windows
+```
 venv\Scripts\activate
+```
+
+On Linux
+```
+venv\bin\activate
+```
+
+```
 pip install -r requirements.txt
 ```
 
@@ -21,7 +33,7 @@ This is where you'll specify the URL and token as show below. Don't add quotes. 
 
 ```
 CANVAS_API_TOKEN=PLACE YOUR TOKEN HERE
-CANVAS_API_DOMAIN=https://ubc.beta.instructure.com/api/v1
+CANVAS_API_DOMAIN=https://ubc.beta.instructure.com
 ```
 
 
