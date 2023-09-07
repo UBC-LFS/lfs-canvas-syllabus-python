@@ -165,7 +165,7 @@ def getSyllabi():
                     getSyllabusHTML(courseSession, course.course_code, course.id)
                 except Exception as errorMessage:
                     print("Failed to get syllabus. Course code: " + course.course_code)
-                    print("Error: " + str(errorMessage) + "\n")
+                    print("Error: " + str(errorMessage) + ". This most likely means the syllabus doesn't exist on Canvas, or is not accessible by the API. \n")
     
     print("Done collecting syllabi!")
 
