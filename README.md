@@ -49,3 +49,4 @@ python getSyllabi.py
 6. The syllabuses are now downloaded in `output/syllabi`, inside folders that indicate what year/term the course was offered.
 7. The name of the courses without a syllabus will be added `output/coursesWithNoSyllabus/{session}`
     - Do not worry what `lastUpdatedSessionKey` is. This is just so the script can determine if the file was created in the past, or when it just ran.
+8. **Note:** If you encounter "`Error: list index out of range`", it most likely means that the syllabus does not exist on Canva or it's due to some permission errors.
