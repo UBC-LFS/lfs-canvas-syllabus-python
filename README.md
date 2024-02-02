@@ -21,7 +21,7 @@ venv\Scripts\activate
 
 On Linux
 ```
-venv\bin\activate
+source venv\bin\activate
 ```
 
 ```
