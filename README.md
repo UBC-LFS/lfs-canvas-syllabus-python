@@ -40,6 +40,7 @@ API_VERSION = 'api/v1'
 
 
 ## Gathering syllabus
+0. Rename **syllabi_example** to **syllabi**
 1. Run this application: 
 
 ```

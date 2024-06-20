@@ -1,0 +1,1 @@
+### Please rename this folder to **syllabi**
